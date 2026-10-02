@@ -1,0 +1,1087 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0,
+               maximum-scale=1.0, user-scalable=no">
+
+<title>Neural Efficiency Lab</title>
+
+<style>
+    * {
+        box-sizing: border-box;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+        margin: 0;
+        background: #0b0d12;
+        color: #e9edf5;
+        font-family: -apple-system, BlinkMacSystemFont,
+                     "Segoe UI", sans-serif;
+    }
+
+    .app {
+        width: min(100%, 900px);
+        margin: auto;
+        padding: 20px;
+    }
+
+    h1 {
+        margin: 0;
+        font-size: 28px;
+    }
+
+    .subtitle {
+        color: #8e98aa;
+        margin-top: 6px;
+        margin-bottom: 20px;
+    }
+
+    .panel {
+        background: #131722;
+        border: 1px solid #242a38;
+        border-radius: 16px;
+        padding: 18px;
+        margin-bottom: 16px;
+    }
+
+    .stats {
+        display: grid;
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+        gap: 10px;
+    }
+
+    @media (min-width: 600px) {
+        .stats {
+            grid-template-columns:
+                repeat(4, minmax(0, 1fr));
+        }
+    }
+
+    .stat {
+        background: #0e1118;
+        border-radius: 12px;
+        padding: 14px;
+    }
+
+    .stat-name {
+        color: #7f899d;
+        font-size: 12px;
+        margin-bottom: 7px;
+    }
+
+    .stat-value {
+        font-size: 22px;
+        font-weight: 700;
+    }
+
+    .controls {
+        display: grid;
+        gap: 12px;
+    }
+
+    label {
+        color: #aeb7c7;
+        font-size: 14px;
+    }
+
+    input[type="range"] {
+        width: 100%;
+        margin-top: 8px;
+    }
+
+    textarea {
+        width: 100%;
+        min-height: 100px;
+        resize: vertical;
+
+        background: #0b0e14;
+        color: #f1f4f9;
+
+        border: 1px solid #2b3241;
+        border-radius: 12px;
+
+        padding: 14px;
+        font: inherit;
+        font-size: 16px;
+        outline: none;
+    }
+
+    button {
+        width: 100%;
+        border: 0;
+        border-radius: 12px;
+        padding: 14px;
+
+        background: #e9edf5;
+        color: #0b0d12;
+
+        font-size: 16px;
+        font-weight: 700;
+
+        cursor: pointer;
+    }
+
+    button:active {
+        transform: scale(0.98);
+    }
+
+    .network {
+        position: relative;
+        height: 260px;
+        overflow: hidden;
+
+        background:
+            radial-gradient(circle at center,
+                            #171d2a 0%,
+                            #0b0e14 70%);
+
+        border-radius: 14px;
+    }
+
+    .neuron {
+        position: absolute;
+
+        width: 6px;
+        height: 6px;
+
+        border-radius: 50%;
+
+        background: #596273;
+        opacity: 0.35;
+
+        transition:
+            transform 0.08s,
+            opacity 0.08s;
+    }
+
+    .neuron.active {
+        transform: scale(3);
+        opacity: 1;
+        background: white;
+    }
+
+    .bar {
+        height: 12px;
+        background: #090b10;
+        border-radius: 20px;
+        overflow: hidden;
+        margin-top: 8px;
+    }
+
+    .bar-fill {
+        height: 100%;
+        width: 0%;
+        background: #e9edf5;
+        transition: width 0.15s;
+    }
+
+    .output {
+        min-height: 80px;
+        background: #0b0e14;
+        border-radius: 12px;
+        padding: 14px;
+        line-height: 1.5;
+        color: #cbd3e1;
+    }
+
+    .small {
+        color: #7f899d;
+        font-size: 12px;
+        line-height: 1.5;
+    }
+
+    .section-title {
+        font-size: 17px;
+        font-weight: 700;
+        margin-bottom: 12px;
+    }
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+    <h1>Neural Efficiency Lab</h1>
+
+    <div class="subtitle">
+        Biological-inspired sparse neural computation
+    </div>
+
+
+    <!-- LIVE STATISTICS -->
+
+    <div class="panel">
+
+        <div class="section-title">
+            Live neural statistics
+        </div>
+
+        <div class="stats">
+
+            <div class="stat">
+                <div class="stat-name">
+                    TOTAL NEURONS
+                </div>
+
+                <div class="stat-value"
+                     id="totalNeurons">
+                    1000
+                </div>
+            </div>
+
+
+            <div class="stat">
+                <div class="stat-name">
+                    ACTIVE
+                </div>
+
+                <div class="stat-value"
+                     id="activeNeurons">
+                    0
+                </div>
+            </div>
+
+
+            <div class="stat">
+                <div class="stat-name">
+                    SPARSITY
+                </div>
+
+                <div class="stat-value"
+                     id="sparsity">
+                    100%
+                </div>
+            </div>
+
+
+            <div class="stat">
+                <div class="stat-name">
+                    SPIKES / SEC
+                </div>
+
+                <div class="stat-value"
+                     id="spikes">
+                    0
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- NETWORK -->
+
+    <div class="panel">
+
+        <div class="section-title">
+            Neural activity
+        </div>
+
+        <div class="network"
+             id="network">
+        </div>
+
+    </div>
+
+
+    <!-- CONTROLS -->
+
+    <div class="panel">
+
+        <div class="section-title">
+            Experiment
+        </div>
+
+        <div class="controls">
+
+            <div>
+
+                <label>
+                    Neuron count:
+                    <strong id="neuronCountLabel">
+                        1000
+                    </strong>
+                </label>
+
+                <input
+                    id="neuronSlider"
+                    type="range"
+                    min="100"
+                    max="10000"
+                    step="100"
+                    value="1000">
+
+            </div>
+
+
+            <div>
+
+                <label>
+                    Firing threshold:
+                    <strong id="thresholdLabel">
+                        0.82
+                    </strong>
+                </label>
+
+                <input
+                    id="thresholdSlider"
+                    type="range"
+                    min="0.50"
+                    max="0.99"
+                    step="0.01"
+                    value="0.82">
+
+            </div>
+
+
+            <div>
+
+                <label>
+                    Neural decay:
+                    <strong id="decayLabel">
+                        0.85
+                    </strong>
+                </label>
+
+                <input
+                    id="decaySlider"
+                    type="range"
+                    min="0.50"
+                    max="0.99"
+                    step="0.01"
+                    value="0.85">
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- TEXT INPUT -->
+
+    <div class="panel">
+
+        <div class="section-title">
+            Give the network information
+        </div>
+
+        <textarea
+            id="inputText"
+            placeholder="Type something here...">
+        </textarea>
+
+        <br><br>
+
+        <button id="processButton">
+            Process information
+        </button>
+
+    </div>
+
+
+    <!-- OUTPUT -->
+
+    <div class="panel">
+
+        <div class="section-title">
+            Neural output
+        </div>
+
+        <div class="output"
+             id="output">
+            Waiting for input...
+        </div>
+
+    </div>
+
+
+    <div class="panel">
+
+        <div class="section-title">
+            Experiment notes
+        </div>
+
+        <div class="small">
+
+            This prototype is deliberately small.
+            It is not an LLM yet.
+
+            <br><br>
+
+            Each neuron stores a membrane-like value.
+            Inputs increase that value.
+
+            <br><br>
+
+            A neuron only communicates when its
+            value crosses the firing threshold.
+
+            <br><br>
+
+            This allows us to measure how much of
+            the network is actually active.
+
+            <br><br>
+
+            The eventual research goal is to compare
+            this type of sparse/event-driven computation
+            against dense neural computation.
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+/* =========================================================
+   NEURAL EFFICIENCY LAB
+
+   Version 0.1
+
+   No external libraries.
+   No server.
+   No network.
+   ========================================================= */
+
+
+/* ---------------------------------------------------------
+   GLOBAL PARAMETERS
+   --------------------------------------------------------- */
+
+let NEURON_COUNT = 1000;
+
+let THRESHOLD = 0.82;
+
+let DECAY = 0.85;
+
+
+/* ---------------------------------------------------------
+   NEURONS
+
+   Each neuron has:
+
+   potential
+   threshold
+   fired
+   --------------------------------------------------------- */
+
+let neurons = [];
+
+
+/* ---------------------------------------------------------
+   STATISTICS
+   --------------------------------------------------------- */
+
+let totalSpikes = 0;
+
+let spikesThisSecond = 0;
+
+let lastSecond = performance.now();
+
+
+/* ---------------------------------------------------------
+   DOM
+   --------------------------------------------------------- */
+
+const network =
+    document.getElementById("network");
+
+const totalNeurons =
+    document.getElementById("totalNeurons");
+
+const activeNeurons =
+    document.getElementById("activeNeurons");
+
+const sparsity =
+    document.getElementById("sparsity");
+
+const spikes =
+    document.getElementById("spikes");
+
+const neuronSlider =
+    document.getElementById("neuronSlider");
+
+const neuronCountLabel =
+    document.getElementById("neuronCountLabel");
+
+const thresholdSlider =
+    document.getElementById("thresholdSlider");
+
+const thresholdLabel =
+    document.getElementById("thresholdLabel");
+
+const decaySlider =
+    document.getElementById("decaySlider");
+
+const decayLabel =
+    document.getElementById("decayLabel");
+
+const inputText =
+    document.getElementById("inputText");
+
+const processButton =
+    document.getElementById("processButton");
+
+const output =
+    document.getElementById("output");
+
+
+/* ---------------------------------------------------------
+   RANDOM NUMBER
+   --------------------------------------------------------- */
+
+function random() {
+
+    return Math.random();
+
+}
+
+
+/* ---------------------------------------------------------
+   CREATE NETWORK
+   --------------------------------------------------------- */
+
+function createNetwork() {
+
+    neurons = [];
+
+    network.innerHTML = "";
+
+    for (let i = 0; i < NEURON_COUNT; i++) {
+
+        const neuron = {
+
+            potential: random() * 0.2,
+
+            fired: false,
+
+            x: random(),
+
+            y: random()
+
+        };
+
+        neurons.push(neuron);
+
+
+        /*
+         We don't visually render all 10,000
+         neurons.
+
+         The simulation can contain many more
+         neurons than the visualisation.
+        */
+
+        if (i < 500) {
+
+            const element =
+                document.createElement("div");
+
+            element.className = "neuron";
+
+            element.style.left =
+                (neuron.x * 100) + "%";
+
+            element.style.top =
+                (neuron.y * 100) + "%";
+
+            neuron.element = element;
+
+            network.appendChild(element);
+
+        }
+
+    }
+
+    updateStatistics();
+
+}
+
+
+/* ---------------------------------------------------------
+   CONVERT TEXT INTO INPUT SIGNAL
+   --------------------------------------------------------- */
+
+function textToSignal(text) {
+
+    if (!text.length) {
+
+        return 0;
+
+    }
+
+
+    /*
+     Simple first-generation encoder.
+
+     Later this will be replaced by a real
+     tokenizer and embeddings.
+    */
+
+    let sum = 0;
+
+    for (let i = 0; i < text.length; i++) {
+
+        sum += text.charCodeAt(i);
+
+    }
+
+
+    return (
+        (sum % 1000) / 1000
+    );
+
+}
+
+
+/* ---------------------------------------------------------
+   APPLY INPUT
+   --------------------------------------------------------- */
+
+function stimulate(signal) {
+
+    for (let i = 0; i < neurons.length; i++) {
+
+        const neuron = neurons[i];
+
+
+        /*
+         Different neurons receive different
+         amounts of the incoming signal.
+        */
+
+        const sensitivity =
+            0.2 + random() * 0.8;
+
+
+        neuron.potential +=
+            signal * sensitivity * 0.35;
+
+    }
+
+}
+
+
+/* ---------------------------------------------------------
+   FIRE NEURONS
+   --------------------------------------------------------- */
+
+function updateNeurons() {
+
+    let active = 0;
+
+
+    for (let i = 0; i < neurons.length; i++) {
+
+        const neuron = neurons[i];
+
+
+        /*
+         Biological-inspired decay.
+
+         Membrane potential gradually falls.
+        */
+
+        neuron.potential *= DECAY;
+
+
+        /*
+         Small background noise.
+
+         This prevents the network from becoming
+         completely static.
+        */
+
+        neuron.potential +=
+            random() * 0.025;
+
+
+        neuron.fired = false;
+
+
+        /*
+         SPIKE
+
+         The neuron communicates only when its
+         threshold is crossed.
+        */
+
+        if (
+            neuron.potential >= THRESHOLD
+        ) {
+
+            neuron.fired = true;
+
+            neuron.potential = 0;
+
+            active++;
+
+            totalSpikes++;
+
+            spikesThisSecond++;
+
+        }
+
+    }
+
+
+    return active;
+
+}
+
+
+/* ---------------------------------------------------------
+   UPDATE VISUALISATION
+   --------------------------------------------------------- */
+
+function updateVisuals() {
+
+    const visualCount =
+        Math.min(500, neurons.length);
+
+
+    for (
+        let i = 0;
+        i < visualCount;
+        i++
+    ) {
+
+        const neuron =
+            neurons[i];
+
+        if (!neuron.element) {
+            continue;
+        }
+
+
+        if (neuron.fired) {
+
+            neuron.element
+                .classList
+                .add("active");
+
+        } else {
+
+            neuron.element
+                .classList
+                .remove("active");
+
+        }
+
+    }
+
+}
+
+
+/* ---------------------------------------------------------
+   STATISTICS
+   --------------------------------------------------------- */
+
+function updateStatistics() {
+
+    let active = 0;
+
+
+    for (const neuron of neurons) {
+
+        if (neuron.fired) {
+
+            active++;
+
+        }
+
+    }
+
+
+    const percentage =
+        neurons.length === 0
+            ? 0
+            : (active / neurons.length) * 100;
+
+
+    totalNeurons.textContent =
+        neurons.length.toLocaleString();
+
+
+    activeNeurons.textContent =
+        active.toLocaleString();
+
+
+    sparsity.textContent =
+        (100 - percentage).toFixed(2) + "%";
+
+
+    spikes.textContent =
+        spikesThisSecond.toLocaleString();
+
+}
+
+
+/* ---------------------------------------------------------
+   OUTPUT INTERPRETATION
+   --------------------------------------------------------- */
+
+function interpretNetwork(text) {
+
+    let activity = 0;
+
+    let strongest = -Infinity;
+
+    let strongestIndex = 0;
+
+
+    for (
+        let i = 0;
+        i < neurons.length;
+        i++
+    ) {
+
+        const value =
+            neurons[i].potential;
+
+
+        if (value > strongest) {
+
+            strongest = value;
+
+            strongestIndex = i;
+
+        }
+
+
+        activity += value;
+
+    }
+
+
+    activity /=
+        Math.max(1, neurons.length);
+
+
+    /*
+     This is NOT language generation yet.
+
+     It simply demonstrates that the neural
+     state can be used to produce an output.
+
+     A real language model will replace this
+     with token prediction.
+    */
+
+
+    const firedCount =
+        neurons.filter(
+            n => n.fired
+        ).length;
+
+
+    output.innerHTML =
+
+        "Input processed by the neural network.<br><br>" +
+
+        "Neural activity: " +
+        (activity * 100).toFixed(2) +
+        "%<br>" +
+
+        "Neurons firing: " +
+        firedCount.toLocaleString() +
+        "<br>" +
+
+        "Strongest neuron: #" +
+        strongestIndex +
+        "<br><br>" +
+
+        "<span class='small'>" +
+
+        "The next stage is to replace this " +
+        "experimental output layer with a real " +
+        "learned prediction system." +
+
+        "</span>";
+
+}
+
+
+/* ---------------------------------------------------------
+   PROCESS INPUT
+   --------------------------------------------------------- */
+
+function processInput() {
+
+    const text =
+        inputText.value.trim();
+
+
+    if (!text) {
+
+        output.textContent =
+            "Please enter some information.";
+
+        return;
+
+    }
+
+
+    const signal =
+        textToSignal(text);
+
+
+    /*
+     Multiple neural time steps.
+
+     This is important.
+
+     Biological neurons don't necessarily
+     process everything in one instantaneous
+     calculation.
+    */
+
+    for (let t = 0; t < 12; t++) {
+
+        stimulate(signal);
+
+        updateNeurons();
+
+    }
+
+
+    updateVisuals();
+
+    interpretNetwork(text);
+
+    updateStatistics();
+
+}
+
+
+/* ---------------------------------------------------------
+   CONTINUOUS SIMULATION
+   --------------------------------------------------------- */
+
+function simulationLoop() {
+
+    updateNeurons();
+
+    updateVisuals();
+
+    updateStatistics();
+
+
+    requestAnimationFrame(
+        simulationLoop
+    );
+
+}
+
+
+/* ---------------------------------------------------------
+   SPIKE RATE TIMER
+   --------------------------------------------------------- */
+
+function spikeTimer() {
+
+    const now =
+        performance.now();
+
+
+    if (
+        now - lastSecond >= 1000
+    ) {
+
+        spikes.textContent =
+            spikesThisSecond.toLocaleString();
+
+        spikesThisSecond = 0;
+
+        lastSecond = now;
+
+    }
+
+
+    requestAnimationFrame(
+        spikeTimer
+    );
+
+}
+
+
+/* ---------------------------------------------------------
+   CONTROLS
+   --------------------------------------------------------- */
+
+neuronSlider.addEventListener(
+    "input",
+    () => {
+
+        NEURON_COUNT =
+            Number(neuronSlider.value);
+
+        neuronCountLabel.textContent =
+            NEURON_COUNT.toLocaleString();
+
+        createNetwork();
+
+    }
+);
+
+
+thresholdSlider.addEventListener(
+    "input",
+    () => {
+
+        THRESHOLD =
+            Number(thresholdSlider.value);
+
+        thresholdLabel.textContent =
+            THRESHOLD.toFixed(2);
+
+    }
+);
+
+
+decaySlider.addEventListener(
+    "input",
+    () => {
+
+        DECAY =
+            Number(decaySlider.value);
+
+        decayLabel.textContent =
+            DECAY.toFixed(2);
+
+    }
+);
+
+
+processButton.addEventListener(
+    "click",
+    processInput
+);
+
+
+/* ---------------------------------------------------------
+   INITIALISE
+   --------------------------------------------------------- */
+
+createNetwork();
+
+simulationLoop();
+
+spikeTimer();
+
+</script>
+
+</body>
+</html>
+```
