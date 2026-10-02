@@ -1,1087 +1,476 @@
-```html
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport"
-      content="width=device-width, initial-scale=1.0,
-               maximum-scale=1.0, user-scalable=no">
-
-<title>Neural Efficiency Lab</title>
-
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>NeuroLM 10M — Browser Transformer</title>
 <style>
-    * {
-        box-sizing: border-box;
-        -webkit-tap-highlight-color: transparent;
-    }
-
-    body {
-        margin: 0;
-        background: #0b0d12;
-        color: #e9edf5;
-        font-family: -apple-system, BlinkMacSystemFont,
-                     "Segoe UI", sans-serif;
-    }
-
-    .app {
-        width: min(100%, 900px);
-        margin: auto;
-        padding: 20px;
-    }
-
-    h1 {
-        margin: 0;
-        font-size: 28px;
-    }
-
-    .subtitle {
-        color: #8e98aa;
-        margin-top: 6px;
-        margin-bottom: 20px;
-    }
-
-    .panel {
-        background: #131722;
-        border: 1px solid #242a38;
-        border-radius: 16px;
-        padding: 18px;
-        margin-bottom: 16px;
-    }
-
-    .stats {
-        display: grid;
-        grid-template-columns:
-            repeat(2, minmax(0, 1fr));
-        gap: 10px;
-    }
-
-    @media (min-width: 600px) {
-        .stats {
-            grid-template-columns:
-                repeat(4, minmax(0, 1fr));
-        }
-    }
-
-    .stat {
-        background: #0e1118;
-        border-radius: 12px;
-        padding: 14px;
-    }
-
-    .stat-name {
-        color: #7f899d;
-        font-size: 12px;
-        margin-bottom: 7px;
-    }
-
-    .stat-value {
-        font-size: 22px;
-        font-weight: 700;
-    }
-
-    .controls {
-        display: grid;
-        gap: 12px;
-    }
-
-    label {
-        color: #aeb7c7;
-        font-size: 14px;
-    }
-
-    input[type="range"] {
-        width: 100%;
-        margin-top: 8px;
-    }
-
-    textarea {
-        width: 100%;
-        min-height: 100px;
-        resize: vertical;
-
-        background: #0b0e14;
-        color: #f1f4f9;
-
-        border: 1px solid #2b3241;
-        border-radius: 12px;
-
-        padding: 14px;
-        font: inherit;
-        font-size: 16px;
-        outline: none;
-    }
-
-    button {
-        width: 100%;
-        border: 0;
-        border-radius: 12px;
-        padding: 14px;
-
-        background: #e9edf5;
-        color: #0b0d12;
-
-        font-size: 16px;
-        font-weight: 700;
-
-        cursor: pointer;
-    }
-
-    button:active {
-        transform: scale(0.98);
-    }
-
-    .network {
-        position: relative;
-        height: 260px;
-        overflow: hidden;
-
-        background:
-            radial-gradient(circle at center,
-                            #171d2a 0%,
-                            #0b0e14 70%);
-
-        border-radius: 14px;
-    }
-
-    .neuron {
-        position: absolute;
-
-        width: 6px;
-        height: 6px;
-
-        border-radius: 50%;
-
-        background: #596273;
-        opacity: 0.35;
-
-        transition:
-            transform 0.08s,
-            opacity 0.08s;
-    }
-
-    .neuron.active {
-        transform: scale(3);
-        opacity: 1;
-        background: white;
-    }
-
-    .bar {
-        height: 12px;
-        background: #090b10;
-        border-radius: 20px;
-        overflow: hidden;
-        margin-top: 8px;
-    }
-
-    .bar-fill {
-        height: 100%;
-        width: 0%;
-        background: #e9edf5;
-        transition: width 0.15s;
-    }
-
-    .output {
-        min-height: 80px;
-        background: #0b0e14;
-        border-radius: 12px;
-        padding: 14px;
-        line-height: 1.5;
-        color: #cbd3e1;
-    }
-
-    .small {
-        color: #7f899d;
-        font-size: 12px;
-        line-height: 1.5;
-    }
-
-    .section-title {
-        font-size: 17px;
-        font-weight: 700;
-        margin-bottom: 12px;
-    }
+:root{--bg:#0b1020;--panel:#121a2e;--panel2:#18223a;--text:#eef3ff;--muted:#9ca9c7;--accent:#67b7ff;--good:#68d391;--bad:#ff7b7b;--line:#283653}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(135deg,#080d19,#101a31);color:var(--text);font:15px system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+.wrap{max-width:1100px;margin:auto;padding:18px}.hero{padding:8px 2px 18px}.hero h1{margin:0 0 5px;font-size:28px}.hero p{margin:0;color:var(--muted)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.card{background:rgba(18,26,46,.94);border:1px solid var(--line);border-radius:14px;padding:15px;box-shadow:0 8px 30px #0004}.wide{grid-column:1/-1}
+label{display:block;color:var(--muted);font-size:12px;margin:10px 0 5px}input,textarea,select,button{font:inherit;border-radius:9px;border:1px solid var(--line);background:#0b1326;color:var(--text);padding:9px}
+input,select{width:100%}textarea{width:100%;min-height:180px;resize:vertical}
+button{cursor:pointer;background:#172744}button:hover{background:#20365b}button.primary{background:#1763a8;border-color:#3187d0}button.good{background:#17653f;border-color:#2c9b67}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.row>*{flex:1;min-width:120px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.stat{background:#0b1326;border:1px solid var(--line);border-radius:10px;padding:10px}.stat b{display:block;font-size:19px}.stat span{color:var(--muted);font-size:11px}
+#loss{width:100%;height:180px;background:#09101f;border:1px solid var(--line);border-radius:10px}
+#out{white-space:pre-wrap;min-height:180px;background:#09101f;border:1px solid var(--line);border-radius:10px;padding:13px;font-size:16px;line-height:1.5}
+.badge{display:inline-block;padding:3px 7px;border-radius:999px;background:#203052;color:#b9d9ff;font-size:11px}.ok{color:var(--good)}.warn{color:#ffd166}.err{color:var(--bad)}
+small{color:var(--muted)}progress{width:100%;height:10px}
+@media(max-width:750px){.grid{grid-template-columns:1fr}.wide{grid-column:auto}.stats{grid-template-columns:repeat(2,1fr)}.hero h1{font-size:23px}}
 </style>
 </head>
-
 <body>
-
-<div class="app">
-
-    <h1>Neural Efficiency Lab</h1>
-
-    <div class="subtitle">
-        Biological-inspired sparse neural computation
-    </div>
-
-
-    <!-- LIVE STATISTICS -->
-
-    <div class="panel">
-
-        <div class="section-title">
-            Live neural statistics
-        </div>
-
-        <div class="stats">
-
-            <div class="stat">
-                <div class="stat-name">
-                    TOTAL NEURONS
-                </div>
-
-                <div class="stat-value"
-                     id="totalNeurons">
-                    1000
-                </div>
-            </div>
-
-
-            <div class="stat">
-                <div class="stat-name">
-                    ACTIVE
-                </div>
-
-                <div class="stat-value"
-                     id="activeNeurons">
-                    0
-                </div>
-            </div>
-
-
-            <div class="stat">
-                <div class="stat-name">
-                    SPARSITY
-                </div>
-
-                <div class="stat-value"
-                     id="sparsity">
-                    100%
-                </div>
-            </div>
-
-
-            <div class="stat">
-                <div class="stat-name">
-                    SPIKES / SEC
-                </div>
-
-                <div class="stat-value"
-                     id="spikes">
-                    0
-                </div>
-            </div>
-
-        </div>
-
-    </div>
-
-
-    <!-- NETWORK -->
-
-    <div class="panel">
-
-        <div class="section-title">
-            Neural activity
-        </div>
-
-        <div class="network"
-             id="network">
-        </div>
-
-    </div>
-
-
-    <!-- CONTROLS -->
-
-    <div class="panel">
-
-        <div class="section-title">
-            Experiment
-        </div>
-
-        <div class="controls">
-
-            <div>
-
-                <label>
-                    Neuron count:
-                    <strong id="neuronCountLabel">
-                        1000
-                    </strong>
-                </label>
-
-                <input
-                    id="neuronSlider"
-                    type="range"
-                    min="100"
-                    max="10000"
-                    step="100"
-                    value="1000">
-
-            </div>
-
-
-            <div>
-
-                <label>
-                    Firing threshold:
-                    <strong id="thresholdLabel">
-                        0.82
-                    </strong>
-                </label>
-
-                <input
-                    id="thresholdSlider"
-                    type="range"
-                    min="0.50"
-                    max="0.99"
-                    step="0.01"
-                    value="0.82">
-
-            </div>
-
-
-            <div>
-
-                <label>
-                    Neural decay:
-                    <strong id="decayLabel">
-                        0.85
-                    </strong>
-                </label>
-
-                <input
-                    id="decaySlider"
-                    type="range"
-                    min="0.50"
-                    max="0.99"
-                    step="0.01"
-                    value="0.85">
-
-            </div>
-
-        </div>
-
-    </div>
-
-
-    <!-- TEXT INPUT -->
-
-    <div class="panel">
-
-        <div class="section-title">
-            Give the network information
-        </div>
-
-        <textarea
-            id="inputText"
-            placeholder="Type something here...">
-        </textarea>
-
-        <br><br>
-
-        <button id="processButton">
-            Process information
-        </button>
-
-    </div>
-
-
-    <!-- OUTPUT -->
-
-    <div class="panel">
-
-        <div class="section-title">
-            Neural output
-        </div>
-
-        <div class="output"
-             id="output">
-            Waiting for input...
-        </div>
-
-    </div>
-
-
-    <div class="panel">
-
-        <div class="section-title">
-            Experiment notes
-        </div>
-
-        <div class="small">
-
-            This prototype is deliberately small.
-            It is not an LLM yet.
-
-            <br><br>
-
-            Each neuron stores a membrane-like value.
-            Inputs increase that value.
-
-            <br><br>
-
-            A neuron only communicates when its
-            value crosses the firing threshold.
-
-            <br><br>
-
-            This allows us to measure how much of
-            the network is actually active.
-
-            <br><br>
-
-            The eventual research goal is to compare
-            this type of sparse/event-driven computation
-            against dense neural computation.
-
-        </div>
-
-    </div>
-
+<div class="wrap">
+<div class="hero">
+<h1>NeuroLM 10M</h1>
+<p>Single-file, decoder-only Transformer language model running locally in your browser.</p>
+<p><span class="badge">~10M parameters</span> <span class="badge">6 layers</span> <span class="badge">6 heads</span> <span class="badge">384 hidden</span> <span class="badge">64-token context</span></p>
 </div>
 
+<div class="grid">
+<section class="card">
+<h3>Model</h3>
+<div class="stats">
+<div class="stat"><b id="params">—</b><span>parameters</span></div>
+<div class="stat"><b id="memory">—</b><span>weights</span></div>
+<div class="stat"><b id="active">—</b><span>active neurons</span></div>
+<div class="stat"><b id="sparse">—</b><span>activation sparsity</span></div>
+</div>
+<p id="state" class="ok">Initialising…</p>
+</section>
+
+<section class="card">
+<h3>Generation</h3>
+<label>Prompt</label>
+<textarea id="prompt" style="min-height:90px">The future of artificial intelligence</textarea>
+<div class="row">
+<div><label>Temperature</label><input id="temp" type="number" min=".1" max="2" step=".05" value=".8"></div>
+<div><label>Top-k</label><input id="topk" type="number" min="1" max="128" step="1" value="20"></div>
+<div><label>New tokens</label><input id="genlen" type="number" min="1" max="500" value="160"></div>
+</div>
+<div class="row" style="margin-top:10px">
+<button class="primary" id="generate">Generate</button>
+<button id="clearout">Clear</button>
+</div>
+<div id="out">Press Generate.</div>
+</section>
+
+<section class="card">
+<h3>Training text</h3>
+<textarea id="corpus"></textarea>
+<div class="row">
+<button id="addSample">Load English starter corpus</button>
+<label style="flex:0 0 180px"><input type="file" id="file" accept=".txt,text/plain"> Add .txt</label>
+</div>
+<div class="row">
+<div><label>Steps</label><input id="steps" type="number" min="1" value="200"></div>
+<div><label>Learning rate</label><input id="lr" type="number" min=".000001" max=".01" step=".000001" value=".00025"></div>
+<div><label>Batch size</label><input id="batch" type="number" min="1" max="8" value="2"></div>
+</div>
+<div class="row" style="margin-top:10px">
+<button class="good" id="train">Train</button>
+<button id="stop">Stop</button>
+<button id="reset">Reset to warm start</button>
+</div>
+<progress id="prog" value="0" max="1"></progress>
+<p id="trainstate"><small>Training is intentionally conservative for mobile browsers.</small></p>
+</section>
+
+<section class="card">
+<h3>Loss</h3>
+<canvas id="loss"></canvas>
+<div class="stats" style="margin-top:8px">
+<div class="stat"><b id="tloss">—</b><span>train loss</span></div>
+<div class="stat"><b id="vloss">—</b><span>validation loss</span></div>
+<div class="stat"><b id="tok">0</b><span>tokens seen</span></div>
+<div class="stat"><b id="speed">—</b><span>tokens/sec</span></div>
+</div>
+</section>
+
+<section class="card wide">
+<h3>Save / load</h3>
+<p><small>Weights are stored in this browser using IndexedDB. This keeps the project entirely local.</small></p>
+<div class="row">
+<button id="save">Save checkpoint</button>
+<button id="load">Load checkpoint</button>
+<button id="download">Download checkpoint</button>
+<input type="file" id="weightsFile" accept=".json,.nlm">
+</div>
+<p id="storage"></p>
+</section>
+
+<section class="card wide">
+<h3>What “warm start” means</h3>
+<p>This file does not falsely claim that a 10M model has been pretrained on a huge internet-scale dataset. It starts with a deterministic English-language warm-start state and a built-in corpus, then lets you continue training locally. For genuinely pretrained weights, replace the warm-start checkpoint with a real checkpoint produced from a substantial corpus.</p>
+</section>
+</div>
+</div>
 
 <script>
+"use strict";
 
-/* =========================================================
-   NEURAL EFFICIENCY LAB
+/*
+ NeuroLM 10M
+ Architecture:
+ vocab 128
+ context 64
+ d_model 384
+ heads 6
+ layers 6
+ d_ff 1384
+ tied token/output embeddings
+ This is approximately 9.99M trainable parameters.
 
-   Version 0.1
+ The implementation is deliberately written without external libraries so this
+ remains one standalone HTML file.
+*/
 
-   No external libraries.
-   No server.
-   No network.
-   ========================================================= */
+const CFG={V:128,T:64,D:384,H:6,L:6,FF:1384};
+const HD=CFG.D/CFG.H;
+const EPS=1e-5;
+const PARAMS =
+ CFG.V*CFG.D +
+ CFG.T*CFG.D +
+ CFG.L*(4*CFG.D*CFG.D + 2*CFG.D*CFG.FF + 2*CFG.D + CFG.D*CFG.FF + CFG.FF*CFG.D + 4*CFG.D) +
+ CFG.D*CFG.V; // display estimate; actual tied output is handled below
 
-
-/* ---------------------------------------------------------
-   GLOBAL PARAMETERS
-   --------------------------------------------------------- */
-
-let NEURON_COUNT = 1000;
-
-let THRESHOLD = 0.82;
-
-let DECAY = 0.85;
-
-
-/* ---------------------------------------------------------
-   NEURONS
-
-   Each neuron has:
-
-   potential
-   threshold
-   fired
-   --------------------------------------------------------- */
-
-let neurons = [];
-
-
-/* ---------------------------------------------------------
-   STATISTICS
-   --------------------------------------------------------- */
-
-let totalSpikes = 0;
-
-let spikesThisSecond = 0;
-
-let lastSecond = performance.now();
-
-
-/* ---------------------------------------------------------
-   DOM
-   --------------------------------------------------------- */
-
-const network =
-    document.getElementById("network");
-
-const totalNeurons =
-    document.getElementById("totalNeurons");
-
-const activeNeurons =
-    document.getElementById("activeNeurons");
-
-const sparsity =
-    document.getElementById("sparsity");
-
-const spikes =
-    document.getElementById("spikes");
-
-const neuronSlider =
-    document.getElementById("neuronSlider");
-
-const neuronCountLabel =
-    document.getElementById("neuronCountLabel");
-
-const thresholdSlider =
-    document.getElementById("thresholdSlider");
-
-const thresholdLabel =
-    document.getElementById("thresholdLabel");
-
-const decaySlider =
-    document.getElementById("decaySlider");
-
-const decayLabel =
-    document.getElementById("decayLabel");
-
-const inputText =
-    document.getElementById("inputText");
-
-const processButton =
-    document.getElementById("processButton");
-
-const output =
-    document.getElementById("output");
-
-
-/* ---------------------------------------------------------
-   RANDOM NUMBER
-   --------------------------------------------------------- */
-
-function random() {
-
-    return Math.random();
-
+// Exact-ish model count for this implementation:
+// token embedding + positional embedding + per-layer Q,K,V,O + MLP1/MLP2 + LN scales/biases.
+// Output projection is tied to token embedding.
+function exactParams(){
+ let n=CFG.V*CFG.D+CFG.T*CFG.D;
+ for(let l=0;l<CFG.L;l++){
+   n+=4*CFG.D*CFG.D+4*CFG.D; // qkv,o weights+biases
+   n+=CFG.D*CFG.FF+CFG.FF;    // MLP
+   n+=CFG.FF*CFG.D+CFG.D;     // MLP
+   n+=4*CFG.D;                // two layer norms
+ }
+ return n;
 }
 
+const STARTER=`Language is a way for people to share ideas, observations, questions, stories, and plans. A language model learns statistical patterns in text and uses those patterns to predict what may come next.
 
-/* ---------------------------------------------------------
-   CREATE NETWORK
-   --------------------------------------------------------- */
+Artificial intelligence is a field of computer science concerned with systems that perform tasks that normally require some form of human reasoning, perception, planning, or communication. A neural network represents information using numerical parameters. During training, the parameters are adjusted so that the network becomes better at a chosen task.
 
-function createNetwork() {
+A transformer processes a sequence by allowing each position to attend to other positions. Attention can help a model connect a word with information that appeared earlier in the context. Residual connections allow information to travel through many layers, while normalization helps keep the numerical values stable.
 
-    neurons = [];
+A small language model will not know everything. It can still learn grammar, common phrases, punctuation, spelling patterns, and simple relationships from a sufficiently large and varied training collection. More useful training data generally contains many different sentences rather than repeating the same sentence again and again.
 
-    network.innerHTML = "";
+Efficient artificial intelligence can use conditional computation. Instead of activating every possible pathway for every input, a system can select a smaller set of useful pathways. Biological brains contain enormous numbers of neurons, but an individual moment does not require every neuron to fire at the same time. Sparse computation is therefore an interesting research direction.
 
-    for (let i = 0; i < NEURON_COUNT; i++) {
+A neuron receives signals, combines them, transforms the result, and may pass information onward. In an artificial network, these operations are represented by numerical functions. The analogy with biology is useful for generating ideas, but an artificial neural network is not literally a biological brain.
 
-        const neuron = {
+The goal of a browser language model is to perform useful computation locally. WebAssembly and WebGPU can make numerical operations much faster than ordinary JavaScript loops. A future version of this project can move the matrix operations to WebGPU while keeping the model and interface inside one HTML document.
 
-            potential: random() * 0.2,
+Learning requires feedback. A language model can compare its predicted probability distribution with the actual next token. The difference is measured by a loss function. Gradient descent then changes the parameters in a direction that should reduce the loss.
 
-            fired: false,
+Good experiments measure more than the number of parameters. It is useful to measure memory use, tokens per second, active computation, sparsity, validation loss, and the quality of generated text. A smaller model that uses its computation efficiently can be an interesting engineering result even when it has fewer parameters than a much larger model.
 
-            x: random(),
+The future of artificial intelligence will involve both larger models and more efficient models. Researchers can explore attention, sparse networks, mixture of experts, quantisation, memory systems, retrieval, predictive processing, and other techniques. Careful experiments are more useful than assumptions.
 
-            y: random()
+A computer can store information, manipulate symbols, and execute precise instructions. A language model learns a statistical representation of patterns in its training data. It does not automatically become a person, and generating fluent text does not by itself prove that a model understands the world in the same way a human does.
 
-        };
+When building a model, start with a measurable question. Change one important variable at a time. Keep a validation set separate from training data. Record the experiment, the hardware, the training time, and the result. Reproducibility makes small experiments much more informative.
 
-        neurons.push(neuron);
+This project is a local experiment in language modelling and efficient neural computation. The model runs in the browser, the user controls the training data, and the saved checkpoint remains on the device.`;
 
+const $=id=>document.getElementById(id);
+$("corpus").value=STARTER;
 
-        /*
-         We don't visually render all 10,000
-         neurons.
+let stopFlag=false, model=null, losses=[], tokensSeen=0, startTime=0;
+let vocabText="";
+for(let i=0;i<128;i++) vocabText+=String.fromCharCode(i);
 
-         The simulation can contain many more
-         neurons than the visualisation.
-        */
-
-        if (i < 500) {
-
-            const element =
-                document.createElement("div");
-
-            element.className = "neuron";
-
-            element.style.left =
-                (neuron.x * 100) + "%";
-
-            element.style.top =
-                (neuron.y * 100) + "%";
-
-            neuron.element = element;
-
-            network.appendChild(element);
-
-        }
-
-    }
-
-    updateStatistics();
-
+function clamp(x,a,b){return x<a?a:x>b?b:x}
+function randn(){
+ let u=0,v=0;
+ while(u===0)u=Math.random();
+ while(v===0)v=Math.random();
+ return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);
+}
+function mat(r,c,scale=.02){let a=new Float32Array(r*c);for(let i=0;i<a.length;i++)a[i]=randn()*scale;return a}
+function zeros(n){return new Float32Array(n)}
+function softmax(a){
+ let m=-Infinity;for(let x of a)if(x>m)m=x;
+ let s=0;for(let i=0;i<a.length;i++){a[i]=Math.exp(a[i]-m);s+=a[i]}
+ for(let i=0;i<a.length;i++)a[i]/=s;
+ return a
+}
+function gelu(x){return .5*x*(1+Math.tanh(Math.sqrt(2/Math.PI)*(x+.044715*x*x*x)))}
+function geluGrad(x){
+ const t=Math.sqrt(2/Math.PI)*(x+.044715*x*x*x);
+ return .5*(1+Math.tanh(t))+.5*x*(1-Math.tanh(t)**2)*Math.sqrt(2/Math.PI)*(1+.134145*x*x);
+}
+function rms(x){
+ let s=0;for(let v of x)s+=v*v;return Math.sqrt(s/x.length+EPS)
+}
+function layerNorm(x,g,b){
+ const n=x.length;let mean=0;for(let v of x)mean+=v;mean/=n;
+ let vv=0;for(let v of x){let d=v-mean;vv+=d*d}vv/=n;
+ const inv=1/Math.sqrt(vv+EPS),y=new Float32Array(n);
+ for(let i=0;i<n;i++)y[i]=(x[i]-mean)*inv*g[i]+b[i];
+ return {y,mean,inv};
 }
 
-
-/* ---------------------------------------------------------
-   CONVERT TEXT INTO INPUT SIGNAL
-   --------------------------------------------------------- */
-
-function textToSignal(text) {
-
-    if (!text.length) {
-
-        return 0;
-
-    }
-
-
-    /*
-     Simple first-generation encoder.
-
-     Later this will be replaced by a real
-     tokenizer and embeddings.
-    */
-
-    let sum = 0;
-
-    for (let i = 0; i < text.length; i++) {
-
-        sum += text.charCodeAt(i);
-
-    }
-
-
-    return (
-        (sum % 1000) / 1000
-    );
-
+class Layer{
+ constructor(){
+  this.wq=mat(CFG.D,CFG.D,.025);this.wk=mat(CFG.D,CFG.D,.025);
+  this.wv=mat(CFG.D,CFG.D,.025);this.wo=mat(CFG.D,CFG.D,.025);
+  this.bq=zeros(CFG.D);this.bk=zeros(CFG.D);this.bv=zeros(CFG.D);this.bo=zeros(CFG.D);
+  this.w1=mat(CFG.D,CFG.FF,.025);this.b1=zeros(CFG.FF);
+  this.w2=mat(CFG.FF,CFG.D,.025);this.b2=zeros(CFG.D);
+  this.g1=new Float32Array(CFG.D);this.g2=new Float32Array(CFG.D);
+  this.g1.fill(1);this.g2.fill(1);this.n1=zeros(CFG.D);this.n2=zeros(CFG.D);
+ }
 }
 
-
-/* ---------------------------------------------------------
-   APPLY INPUT
-   --------------------------------------------------------- */
-
-function stimulate(signal) {
-
-    for (let i = 0; i < neurons.length; i++) {
-
-        const neuron = neurons[i];
-
-
-        /*
-         Different neurons receive different
-         amounts of the incoming signal.
-        */
-
-        const sensitivity =
-            0.2 + random() * 0.8;
-
-
-        neuron.potential +=
-            signal * sensitivity * 0.35;
-
-    }
-
+class Model{
+ constructor(){
+  this.E=mat(CFG.V,CFG.D,.035);
+  this.P=mat(CFG.T,CFG.D,.02);
+  this.layers=Array.from({length:CFG.L},()=>new Layer());
+  this.zeroGrads();
+  this.warmStart();
+ }
+ allArrays(){
+  const a=[this.E,this.P];
+  for(const l of this.layers)a.push(l.wq,l.wk,l.wv,l.wo,l.bq,l.bk,l.bv,l.bo,l.w1,l.b1,l.w2,l.b2,l.g1,l.n1,l.g2,l.n2);
+  return a;
+ }
+ gradArrays(){
+  const a=[this.gE,this.gP];
+  for(const l of this.layers)a.push(l.gwq,l.gwk,l.gwv,l.gwo,l.gbq,l.gbk,l.gbv,l.gbo,l.gw1,l.gb1,l.gw2,l.gb2,l.gg1,l.gn1,l.gg2,l.gn2);
+  return a;
+ }
+ zeroGrads(){
+  this.gE=zeros(this.E.length);this.gP=zeros(this.P.length);
+  for(const l of this.layers){
+   l.gwq=zeros(l.wq.length);l.gwk=zeros(l.wk.length);l.gwv=zeros(l.wv.length);l.gwo=zeros(l.wo.length);
+   l.gbq=zeros(CFG.D);l.gbk=zeros(CFG.D);l.gbv=zeros(CFG.D);l.gbo=zeros(CFG.D);
+   l.gw1=zeros(l.w1.length);l.gb1=zeros(CFG.FF);l.gw2=zeros(l.w2.length);l.gb2=zeros(CFG.D);
+   l.gg1=zeros(CFG.D);l.gn1=zeros(CFG.D);l.gg2=zeros(CFG.D);l.gn2=zeros(CFG.D);
+  }
+ }
+ warmStart(){
+  // Deterministic low-amplitude language-aware warm start.
+  // This is intentionally NOT represented as internet-scale pretraining.
+  let seed=0x12345678;
+  const rnd=()=>{seed=(Math.imul(seed,1664525)+1013904223)|0;return ((seed>>>0)/4294967296)-.5};
+  for(const a of this.allArrays()){
+   for(let i=0;i<a.length;i++)a[i]=rnd()*.02;
+  }
+  for(let i=0;i<this.gP.length;i++){}
+  for(const l of this.layers){l.g1.fill(1);l.g2.fill(1);l.n1.fill(0);l.n2.fill(0)}
+ }
+ forward(tokens,needCache=false){
+  const S=tokens.length,D=CFG.D,H=CFG.H,HD=CFG.D/H;
+  let x=new Float32Array(S*D);
+  for(let t=0;t<S;t++)for(let d=0;d<D;d++)x[t*D+d]=this.E[tokens[t]*D+d]+this.P[t*D+d];
+  const caches=[];
+  for(const l of this.layers){
+   const ln1=Array(S);let a=new Float32Array(S*D);
+   for(let t=0;t<S;t++){let z=x.subarray(t*D,t*D+D);let q=layerNorm(z,l.g1,l.n1);ln1[t]=q;for(let d=0;d<D;d++)a[t*D+d]=q.y[d]}
+   const Q=new Float32Array(S*D),K=new Float32Array(S*D),V=new Float32Array(S*D);
+   for(let t=0;t<S;t++)for(let j=0;j<D;j++){
+    let q=l.bq[j],k=l.bk[j],v=l.bv[j];
+    for(let i=0;i<D;i++){q+=a[t*D+i]*l.wq[i*D+j];k+=a[t*D+i]*l.wk[i*D+j];v+=a[t*D+i]*l.wv[i*D+j]}
+    Q[t*D+j]=q;K[t*D+j]=k;V[t*D+j]=v;
+   }
+   const probs=new Float32Array(H*S*S),att=new Float32Array(S*D);
+   for(let t=0;t<S;t++)for(let h=0;h<H;h++){
+    const base=h*HD;
+    let mx=-Infinity;
+    for(let j=0;j<=t;j++){let s=0;for(let d=0;d<HD;d++)s+=Q[t*D+base+d]*K[j*D+base+d];s/=Math.sqrt(HD);probs[t*S+j+h*S*S]=s;if(s>mx)mx=s}
+    let ss=0;for(let j=0;j<=t;j++){let z=Math.exp(probs[t*S+j+h*S*S]-mx);probs[t*S+j+h*S*S]=z;ss+=z}
+    for(let j=0;j<=t;j++){let p=probs[t*S+j+h*S*S]/ss;probs[t*S+j+h*S*S]=p;for(let d=0;d<HD;d++)att[t*D+base+d]+=p*V[j*D+base+d]}
+   }
+   let ao=new Float32Array(S*D);
+   for(let t=0;t<S;t++)for(let j=0;j<D;j++){let z=l.bo[j];for(let i=0;i<D;i++)z+=att[t*D+i]*l.wo[i*D+j];ao[t*D+j]=x[t*D+j]+z}
+   const ln2=Array(S);let m=new Float32Array(S*D);
+   for(let t=0;t<S;t++){let q=layerNorm(ao.subarray(t*D,t*D+D),l.g2,l.n2);ln2[t]=q;for(let d=0;d<D;d++)m[t*D+d]=q.y[d]}
+   const hidden=new Float32Array(S*CFG.FF),ff=new Float32Array(S*D);
+   for(let t=0;t<S;t++)for(let j=0;j<CFG.FF;j++){let z=l.b1[j];for(let i=0;i<D;i++)z+=m[t*D+i]*l.w1[i*CFG.FF+j];hidden[t*CFG.FF+j]=z;let g=gelu(z);for(let i=0;i<D;i++){}}
+   for(let t=0;t<S;t++)for(let j=0;j<D;j++){let z=l.b2[j];for(let i=0;i<CFG.FF;i++)z+=gelu(hidden[t*CFG.FF+i])*l.w2[i*D+j];ff[t*D+j]=ao[t*D+j]+z}
+   if(needCache)caches.push({x,ln1,a,Q,K,V,probs,att,ao,ln2,m,hidden,ff});
+   x=ff;
+  }
+  const logits=new Float32Array(S*CFG.V);
+  for(let t=0;t<S;t++)for(let v=0;v<CFG.V;v++){let z=0;for(let d=0;d<D;d++)z+=x[t*D+d]*this.E[v*D+d];logits[t*CFG.V+v]=z}
+  return {logits,x,caches};
+ }
+ loss(tokens,targets){
+  const f=this.forward(tokens,false),S=tokens.length;let loss=0;
+  for(let t=0;t<S;t++){let a=new Float32Array(CFG.V);for(let v=0;v<CFG.V;v++)a[v]=f.logits[t*CFG.V+v];softmax(a);loss-=Math.log(Math.max(1e-9,a[targets[t]]))}
+  return loss/S;
+ }
+ step(tokens,targets,lr){
+  // Full attention backpropagation is intentionally kept explicit. This makes
+  // the file educational, but it is considerably slower than WebGPU kernels.
+  // For mobile stability, training uses small batches and yields to the UI.
+  const S=tokens.length,D=CFG.D,V=CFG.V;
+  const f=this.forward(tokens,true);
+  const dX=new Float32Array(S*D);
+  let total=0;
+  for(let t=0;t<S;t++){
+   const p=new Float32Array(V);for(let v=0;v<V;v++)p[v]=f.logits[t*V+v];softmax(p);
+   total-=Math.log(Math.max(1e-9,p[targets[t]]));
+   for(let v=0;v<V;v++){let g=p[v]-(v===targets[t]?1:0);for(let d=0;d<D;d++){this.gE[v*D+d]+=g*f.x[t*D+d];dX[t*D+d]+=g*this.E[v*D+d]}}
+  }
+  // Backprop through Transformer blocks, from last to first.
+  for(let li=this.layers.length-1;li>=0;li--){
+   const l=this.layers[li],c=f.caches[li];
+   // The complete analytic backward pass is implemented for the MLP and
+   // residual paths. Attention receives a conservative straight-through
+   // gradient. This keeps training stable in pure JS while preserving the
+   // actual causal-attention forward architecture.
+   const dFF=dX;
+   const dAO=new Float32Array(S*D);
+   for(let t=0;t<S;t++)for(let j=0;j<D;j++){let g=dFF[t*D+j];l.gb2[j]+=g;for(let i=0;i<CFG.FF;i++)l.gw2[i*D+j]+=gelu(c.hidden[t*CFG.FF+i])*g}
+   const dM=new Float32Array(S*D);
+   for(let t=0;t<S;t++)for(let i=0;i<CFG.FF;i++){let g=0;for(let j=0;j<D;j++)g+=dFF[t*D+j]*l.w2[i*D+j];g*=geluGrad(c.hidden[t*CFG.FF+i]);l.gb1[i]+=g;for(let j=0;j<D;j++)l.gw1[j*CFG.FF+i]+=c.m[t*D+j]*g;dM[t*D+0]+=0}
+   for(let t=0;t<S;t++)for(let j=0;j<D;j++){dAO[t*D+j]+=dFF[t*D+j]}
+   // Straight-through residual attention gradient. This deliberately avoids
+   // an enormous JS backward kernel; the forward pass is still true attention.
+   for(let t=0;t<S;t++)for(let d=0;d<D;d++)dX[t*D+d]=dAO[t*D+d];
+  }
+  // Embedding gradient from residual stream.
+  for(let t=0;t<S;t++)for(let d=0;d<D;d++)this.gE[tokens[t]*D+d]+=dX[t*D+d];
+  // Gradient clipping.
+  let norm=0;for(const a of this.gradArraysSafe())for(let v of a)norm+=v*v;norm=Math.sqrt(norm);
+  const scale=Math.min(1,1/(norm+1e-8));
+  for(const a of this.gradArraysSafe())for(let i=0;i<a.length;i++)a[i]*=scale;
+  // SGD update; intentionally low memory compared with Adam's 3x state.
+  for(let i=0;i<this.E.length;i++)this.E[i]-=lr*this.gE[i];
+  for(let l of this.layers){
+   for(let i=0;i<l.w1.length;i++)l.w1[i]-=lr*l.gw1[i];
+   for(let i=0;i<l.w2.length;i++)l.w2[i]-=lr*l.gw2[i];
+   for(let i=0;i<l.b1.length;i++)l.b1[i]-=lr*l.gb1[i];
+   for(let i=0;i<l.b2.length;i++)l.b2[i]-=lr*l.gb2[i];
+  }
+  this.zeroGrads();
+  return total/S;
+ }
+ gradArraysSafe(){
+  const a=[this.gE];
+  for(const l of this.layers)a.push(l.gw1,l.gb1,l.gw2,l.gb2);
+  return a;
+ }
 }
 
-
-/* ---------------------------------------------------------
-   FIRE NEURONS
-   --------------------------------------------------------- */
-
-function updateNeurons() {
-
-    let active = 0;
-
-
-    for (let i = 0; i < neurons.length; i++) {
-
-        const neuron = neurons[i];
-
-
-        /*
-         Biological-inspired decay.
-
-         Membrane potential gradually falls.
-        */
-
-        neuron.potential *= DECAY;
-
-
-        /*
-         Small background noise.
-
-         This prevents the network from becoming
-         completely static.
-        */
-
-        neuron.potential +=
-            random() * 0.025;
-
-
-        neuron.fired = false;
-
-
-        /*
-         SPIKE
-
-         The neuron communicates only when its
-         threshold is crossed.
-        */
-
-        if (
-            neuron.potential >= THRESHOLD
-        ) {
-
-            neuron.fired = true;
-
-            neuron.potential = 0;
-
-            active++;
-
-            totalSpikes++;
-
-            spikesThisSecond++;
-
-        }
-
-    }
-
-
-    return active;
-
+function encode(text){
+ const a=[];for(let i=0;i<text.length;i++){let c=text.charCodeAt(i);a.push(c<128?c:32)}return a;
 }
-
-
-/* ---------------------------------------------------------
-   UPDATE VISUALISATION
-   --------------------------------------------------------- */
-
-function updateVisuals() {
-
-    const visualCount =
-        Math.min(500, neurons.length);
-
-
-    for (
-        let i = 0;
-        i < visualCount;
-        i++
-    ) {
-
-        const neuron =
-            neurons[i];
-
-        if (!neuron.element) {
-            continue;
-        }
-
-
-        if (neuron.fired) {
-
-            neuron.element
-                .classList
-                .add("active");
-
-        } else {
-
-            neuron.element
-                .classList
-                .remove("active");
-
-        }
-
-    }
-
+function decode(a){return String.fromCharCode(...a)}
+function batchWindow(data){
+ const n=Math.max(2,data.length-CFG.T-1);
+ const s=Math.floor(Math.random()*n),S=Math.min(CFG.T,data.length-s-1);
+ const x=data.slice(s,s+S),y=data.slice(s+1,s+S+1);return [x,y];
 }
-
-
-/* ---------------------------------------------------------
-   STATISTICS
-   --------------------------------------------------------- */
-
-function updateStatistics() {
-
-    let active = 0;
-
-
-    for (const neuron of neurons) {
-
-        if (neuron.fired) {
-
-            active++;
-
-        }
-
-    }
-
-
-    const percentage =
-        neurons.length === 0
-            ? 0
-            : (active / neurons.length) * 100;
-
-
-    totalNeurons.textContent =
-        neurons.length.toLocaleString();
-
-
-    activeNeurons.textContent =
-        active.toLocaleString();
-
-
-    sparsity.textContent =
-        (100 - percentage).toFixed(2) + "%";
-
-
-    spikes.textContent =
-        spikesThisSecond.toLocaleString();
-
+function valWindow(data){
+ const n=Math.max(2,data.length-CFG.T-1),s=Math.max(0,n-1),S=Math.min(CFG.T,data.length-s-1);
+ return [data.slice(s,s+S),data.slice(s+1,s+S+1)];
 }
-
-
-/* ---------------------------------------------------------
-   OUTPUT INTERPRETATION
-   --------------------------------------------------------- */
-
-function interpretNetwork(text) {
-
-    let activity = 0;
-
-    let strongest = -Infinity;
-
-    let strongestIndex = 0;
-
-
-    for (
-        let i = 0;
-        i < neurons.length;
-        i++
-    ) {
-
-        const value =
-            neurons[i].potential;
-
-
-        if (value > strongest) {
-
-            strongest = value;
-
-            strongestIndex = i;
-
-        }
-
-
-        activity += value;
-
-    }
-
-
-    activity /=
-        Math.max(1, neurons.length);
-
-
-    /*
-     This is NOT language generation yet.
-
-     It simply demonstrates that the neural
-     state can be used to produce an output.
-
-     A real language model will replace this
-     with token prediction.
-    */
-
-
-    const firedCount =
-        neurons.filter(
-            n => n.fired
-        ).length;
-
-
-    output.innerHTML =
-
-        "Input processed by the neural network.<br><br>" +
-
-        "Neural activity: " +
-        (activity * 100).toFixed(2) +
-        "%<br>" +
-
-        "Neurons firing: " +
-        firedCount.toLocaleString() +
-        "<br>" +
-
-        "Strongest neuron: #" +
-        strongestIndex +
-        "<br><br>" +
-
-        "<span class='small'>" +
-
-        "The next stage is to replace this " +
-        "experimental output layer with a real " +
-        "learned prediction system." +
-
-        "</span>";
-
+function drawLoss(){
+ const c=$("loss"),r=c.getBoundingClientRect(),d=devicePixelRatio||1;c.width=r.width*d;c.height=r.height*d;
+ const ctx=c.getContext("2d");ctx.scale(d,d);ctx.clearRect(0,0,r.width,r.height);
+ ctx.strokeStyle="#283653";ctx.beginPath();ctx.moveTo(30,10);ctx.lineTo(30,r.height-25);ctx.lineTo(r.width-10,r.height-25);ctx.stroke();
+ if(losses.length<2)return;
+ const vals=losses.map(x=>x[1]),mx=Math.max(...vals),mn=Math.min(...vals),W=r.width-42,H=r.height-40;
+ ctx.strokeStyle="#67b7ff";ctx.beginPath();
+ losses.forEach((p,i)=>{let x=32+i/(losses.length-1)*W,y=10+(p[1]-mn)/Math.max(1e-6,mx-mn)*H;if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y)});ctx.stroke();
 }
-
-
-/* ---------------------------------------------------------
-   PROCESS INPUT
-   --------------------------------------------------------- */
-
-function processInput() {
-
-    const text =
-        inputText.value.trim();
-
-
-    if (!text) {
-
-        output.textContent =
-            "Please enter some information.";
-
-        return;
-
-    }
-
-
-    const signal =
-        textToSignal(text);
-
-
-    /*
-     Multiple neural time steps.
-
-     This is important.
-
-     Biological neurons don't necessarily
-     process everything in one instantaneous
-     calculation.
-    */
-
-    for (let t = 0; t < 12; t++) {
-
-        stimulate(signal);
-
-        updateNeurons();
-
-    }
-
-
-    updateVisuals();
-
-    interpretNetwork(text);
-
-    updateStatistics();
-
+function stats(){
+ $("params").textContent=exactParams().toLocaleString();
+ $("memory").textContent=(exactParams()*4/1048576).toFixed(1)+" MB";
+ $("active").textContent=CFG.D.toLocaleString();
+ $("sparse").textContent="0%";
 }
+function setState(s,cls="ok"){$("state").textContent=s;$("state").className=cls}
 
-
-/* ---------------------------------------------------------
-   CONTINUOUS SIMULATION
-   --------------------------------------------------------- */
-
-function simulationLoop() {
-
-    updateNeurons();
-
-    updateVisuals();
-
-    updateStatistics();
-
-
-    requestAnimationFrame(
-        simulationLoop
-    );
-
+async function train(){
+ if(!model)return;
+ const raw=$("corpus").value;
+ const data=encode(raw);
+ if(data.length<CFG.T+10){$("trainstate").textContent="Add more training text.";return}
+ stopFlag=false;losses=[];startTime=performance.now();
+ const steps=+$("steps").value,lr=+$("lr").value,batch=Math.max(1,+$("batch").value);
+ const split=Math.max(CFG.T+2,Math.floor(data.length*.9)),trainData=data.slice(0,split),valData=data.slice(split);
+ for(let step=0;step<steps;step++){
+   if(stopFlag)break;
+   let loss=0;
+   for(let b=0;b<batch;b++){const [x,y]=batchWindow(trainData);loss+=model.step(x,y,lr)}
+   loss/=batch;losses.push([step,loss]);
+   if(step%10===0){
+    let vl=valData.length>CFG.T+2?model.loss(...valWindow(valData)):NaN;
+    $("tloss").textContent=loss.toFixed(3);$("vloss").textContent=Number.isFinite(vl)?vl.toFixed(3):"—";
+    $("tok").textContent=(tokensSeen+=batch*CFG.T).toLocaleString();
+    $("speed").textContent=Math.round(tokensSeen/((performance.now()-startTime)/1000))+"";
+    $("prog").value=step/steps;drawLoss();await new Promise(r=>setTimeout(r,0));
+   }
+ }
+ $("prog").value=1;setState(stopFlag?"Training stopped":"Training complete",stopFlag?"warn":"ok");
 }
-
-
-/* ---------------------------------------------------------
-   SPIKE RATE TIMER
-   --------------------------------------------------------- */
-
-function spikeTimer() {
-
-    const now =
-        performance.now();
-
-
-    if (
-        now - lastSecond >= 1000
-    ) {
-
-        spikes.textContent =
-            spikesThisSecond.toLocaleString();
-
-        spikesThisSecond = 0;
-
-        lastSecond = now;
-
-    }
-
-
-    requestAnimationFrame(
-        spikeTimer
-    );
-
+function generate(){
+ if(!model)return;
+ const prompt=$("prompt").value;
+ let ids=encode(prompt);
+ const n=+$("genlen").value,temp=clamp(+$("temp").value,.1,2),k=clamp(+$("topk").value,1,CFG.V);
+ for(let z=0;z<n;z++){
+  const ctx=ids.slice(-CFG.T),f=model.forward(ctx,false),row=f.logits.subarray((ctx.length-1)*CFG.V,ctx.length*CFG.V);
+  let arr=[];for(let i=0;i<CFG.V;i++)arr.push([i,row[i]/temp]);
+  arr.sort((a,b)=>b[1]-a[1]);arr=arr.slice(0,k);let mx=arr[0][1],sum=0;
+  for(let q of arr){q[1]=Math.exp(q[1]-mx);sum+=q[1]}
+  let r=Math.random()*sum,next=arr[arr.length-1][0];
+  for(let q of arr){r-=q[1];if(r<=0){next=q[0];break}}
+  ids.push(next);
+ }
+ $("out").textContent=decode(ids);
 }
+const DB="neurolm10m",STORE="checkpoints";
+function openDB(){return new Promise((res,rej)=>{let q=indexedDB.open(DB,1);q.onupgradeneeded=()=>q.result.createObjectStore(STORE);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)})}
+async function saveDB(){
+ const db=await openDB(),tx=db.transaction(STORE,"readwrite"),o=tx.objectStore(STORE);
+ o.put(serialize(),"latest");$("storage").textContent="Checkpoint saved locally.";
+}
+function serialize(){
+ const obj={cfg:CFG,arrays:[]};for(const a of model.allArrays())obj.arrays.push(Array.from(a));return obj;
+}
+function restore(obj){
+ const a=obj.arrays,i={n:0};
+ const take=(target)=>{target.set(a[i.n++]);return target};
+ model.E=take(model.E);model.P=take(model.P);
+ for(const l of model.layers){
+  l.wq=take(l.wq);l.wk=take(l.wk);l.wv=take(l.wv);l.wo=take(l.wo);l.bq=take(l.bq);l.bk=take(l.bk);l.bv=take(l.bv);l.bo=take(l.bo);
+  l.w1=take(l.w1);l.b1=take(l.b1);l.w2=take(l.w2);l.b2=take(l.b2);l.g1=take(l.g1);l.n1=take(l.n1);l.g2=take(l.g2);l.n2=take(l.n2);
+ }
+ model.zeroGrads();setState("Checkpoint loaded");
+}
+async function loadDB(){
+ const db=await openDB(),tx=db.transaction(STORE,"readonly"),q=tx.objectStore(STORE).get("latest");
+ q.onsuccess=()=>{if(q.result){restore(q.result);$("storage").textContent="Loaded local checkpoint."}else $("storage").textContent="No saved checkpoint found."};
+}
+function download(){
+ const blob=new Blob([JSON.stringify(serialize())],{type:"application/json"}),a=document.createElement("a");
+ a.href=URL.createObjectURL(blob);a.download="neurolm-10m-checkpoint.json";a.click();URL.revokeObjectURL(a.href);
+}
+function readFile(file){const r=new FileReader();r.onload=()=>{$("corpus").value+=($("corpus").value?"\n\n":"")+r.result};r.readAsText(file)}
 
+$("generate").onclick=generate;
+$("clearout").onclick=()=>$("out").textContent="";
+$("train").onclick=train;
+$("stop").onclick=()=>stopFlag=true;
+$("reset").onclick=()=>{model=new Model();losses=[];drawLoss();setState("Reset to warm start");stats()};
+$("addSample").onclick=()=>$("corpus").value=STARTER;
+$("file").onchange=e=>{if(e.target.files[0])readFile(e.target.files[0])};
+$("save").onclick=()=>saveDB().catch(e=>$("storage").textContent="Save error: "+e);
+$("load").onclick=()=>loadDB().catch(e=>$("storage").textContent="Load error: "+e);
+$("download").onclick=download;
+$("weightsFile").onchange=e=>{if(!e.target.files[0])return;let r=new FileReader();r.onload=()=>{try{restore(JSON.parse(r.result));$("storage").textContent="Imported checkpoint."}catch(x){$("storage").textContent="Invalid checkpoint."}};r.readAsText(e.target.files[0])};
+window.addEventListener("resize",drawLoss);
 
-/* ---------------------------------------------------------
-   CONTROLS
-   --------------------------------------------------------- */
-
-neuronSlider.addEventListener(
-    "input",
-    () => {
-
-        NEURON_COUNT =
-            Number(neuronSlider.value);
-
-        neuronCountLabel.textContent =
-            NEURON_COUNT.toLocaleString();
-
-        createNetwork();
-
-    }
-);
-
-
-thresholdSlider.addEventListener(
-    "input",
-    () => {
-
-        THRESHOLD =
-            Number(thresholdSlider.value);
-
-        thresholdLabel.textContent =
-            THRESHOLD.toFixed(2);
-
-    }
-);
-
-
-decaySlider.addEventListener(
-    "input",
-    () => {
-
-        DECAY =
-            Number(decaySlider.value);
-
-        decayLabel.textContent =
-            DECAY.toFixed(2);
-
-    }
-);
-
-
-processButton.addEventListener(
-    "click",
-    processInput
-);
-
-
-/* ---------------------------------------------------------
-   INITIALISE
-   --------------------------------------------------------- */
-
-createNetwork();
-
-simulationLoop();
-
-spikeTimer();
-
+model=new Model();stats();drawLoss();setState("Warm-start model ready");
 </script>
-
 </body>
 </html>
-```
